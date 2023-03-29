@@ -1,0 +1,118 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+##Univariate Analysis
+
+```{r}
+##1.Import and Read ‘Telecom Churn Data.csv’.
+data <- read.csv("Telecom_Churn_Data.csv")
+View(data)
+##Check the target variable. State whether the data is imbalance or balance
+library(dplyr)
+library(tidyverse)
+sum(is.na(data))
+
+## data didn't have any null value 
+data %>%
+ group_by(Churn) %>%
+ summarize(cnt=n())
+
+```
+
+#####we obderved that false are 4293  and true are  707 most of the data has false data is imbalance
+```{r}
+#Check the distribution of Total international Calls and share insights for the same
+library(ggplot2)
+ggplot(data,aes(x=data$Total.Intl..Calls))+geom_histogram()+labs(title = "total international Calls and share insights",y='frequency')
+
+
+```
+
+###Study the relationship between International Plan Vs Churn & Churn vs Number of Customer Calls using Bivariate Analysis 
+
+
+```{r}
+
+
+
+```
+
+###Study the relationship between Churn vs Total Day Charge 
+```{r}
+
+ggplot(data, aes(y=data$Total.Night.Charge,x=data$Churn))+geom_boxplot()
+
+```
+
+### study the relationship between Churn vs Total Night Charge using boxplot
+
+```{r}
+ggplot(data, aes(y=data$Total.day.Charge,x=data$Churn))+geom_boxplot()
+
+
+```
+
+
+```{r}
+
+data$International.Plan<-as.factor(data$International.Plan)
+data$Voice.mail.Plan<-as.factor(data$Voice.mail.Plan)
+data$Churn<-as.factor(data$Churn)
+
+
+library(caTools)
+splitd<-sample.split(data,SplitRatio	=	0.8)
+train=subset(data,splitd=="TRUE")
+test=subset(data,splitd=="FALSE")
+
+```
+
+```{r}
+data$International.Plan<-as.factor(data$International.Plan)
+data$Voice.mail.Plan<-as.factor(data$Voice.mail.Plan)
+data$Churn<-as.factor(data$Churn)
+
+mymodel	<- glm(Churn	~	International.Plan+Voice.mail.Plan+Num.of.Voice.mail.Messages+Total.Day.Minutes+Total.Day.Calls+Total.day.Charge+Total.Eve.Minutes+Total.Eve.Calls+Total.Eve.Charge+Total.Night.Minutes+Total.Night.Calls+Total.Night.Charge+Number.Customer.Service.calls,	data=train,	
+               family='binomial')
+summary(mymodel)
+restrain<-predict(mymodel,train,type='response')
+plot(restrain)
+restest<-predict(mymodel,test,type='response')
+plot(restest,col='red')
+par(new=TRUE)
+plot(test$Churn)
+cfmatrix<-table(Act=test$Churn,	pred=restest>0.5)
+cfmatrix
+Acc=(cfmatrix[[1,1]]+cfmatrix[[2,2]])/sum(cfmatrix)
+Acc
+
+```
+
+```{r}
+
+# Feature Scaling
+splitd<-sample.split(data,SplitRatio	=	0.8)
+train=subset(data,splitd=="TRUE")
+test=subset(data,splitd=="FALSE")
+
+library(e1071)
+
+library(caret)
+ 
+# Fitting Naive Bayes Model
+# to training dataset
+set.seed(120)  # Setting Seed
+classifier_cl <- naiveBayes(Churn ~ ., data = train)
+classifier_cl
+ 
+# Predicting on test data'
+y_pred <- predict(classifier_cl, newdata = test)
+ 
+y_pred.head()
+
+
+```
